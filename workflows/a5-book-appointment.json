@@ -1,0 +1,331 @@
+[
+  {
+    "updatedAt": "2026-11-05T10:27:38.346Z",
+    "createdAt": "2026-11-05T10:07:21.910Z",
+    "id": "WP1rWW3ucHw2UFO6",
+    "name": "a5-book-appointment",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "book-appointment",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.2,
+        "position": [
+          0,
+          0
+        ],
+        "id": "43921b30-6997-4137-870a-65021a35b390",
+        "name": "Webhook",
+        "webhookId": "84eb494b-70c8-4e96-afde-2fdbac18d89e"
+      },
+      {
+        "parameters": {
+          "jsCode": "   const b = $('Webhook').first().json.body || {};\n   const bad = (detail) => [{ json: { valid: false, detail } }];\n   const date = b.date, time = b.time;\n   const name = typeof b.patient_name === 'string' ? b.patient_name.trim() : '';\n   const phone = typeof b.phone === 'string' ? b.phone.trim() : '';\n   if (typeof date !== 'string' || !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return bad('date');\n   if (typeof time !== 'string' || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(time)) return bad('time');\n   if (name.length < 1 || name.length > 60) return bad('patient_name');\n   if (!/^[0-9+\\-\\s]{7,20}$/.test(phone)) return bad('phone');\n   return [{ json: { valid: true, date, time, patient_name: name, phone } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          208,
+          0
+        ],
+        "id": "bdb40747-c564-4224-bf94-73c6e2507a2d",
+        "name": "Validate"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 4
+            },
+            "conditions": [
+              {
+                "id": "9d63bf95-628f-4eaa-b32e-d9fa420c033b",
+                "leftValue": "={{ $json.valid }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.4,
+        "position": [
+          416,
+          0
+        ],
+        "id": "422a9fc2-6927-4866-856f-c1d83be1fc32",
+        "name": "If"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "m4Wi5zlH563oClRA",
+            "mode": "list",
+            "cachedResultName": "slots",
+            "cachedResultUrl": "/projects/5HgnPv71iTDhNaCX/datatables/m4Wi5zlH563oClRA"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "date",
+                "keyValue": "={{ $json.date }}"
+              },
+              {
+                "keyName": "time",
+                "keyValue": "={{ $json.time }}"
+              },
+              {
+                "keyName": "status",
+                "keyValue": "=available"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "status": "booked",
+              "patient_name": "={{ $json.patient_name }}",
+              "phone": "={{ $json.phone }}"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "date",
+                "displayName": "date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "time",
+                "displayName": "time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "patient_name",
+                "displayName": "patient_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "phone",
+                "displayName": "phone",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          560,
+          -272
+        ],
+        "id": "89d53f5c-5261-44a8-81bc-361556a4cac1",
+        "name": "Update row(s)",
+        "alwaysOutputData": true
+      },
+      {
+        "parameters": {
+          "jsCode": "   const req = $('Validate').first().json;\n   const done = $input.all().some(i => {\n     const r = i.json;\n     return r.date === req.date && r.time === req.time && r.status === 'booked' && r.patient_name === req.patient_name;\n   });\n   return [{ json: done\n     ? { booked: true, date: req.date, time: req.time }\n     : { booked: false, reason: 'slot_unavailable' } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          -128
+        ],
+        "id": "c118d4ee-a43c-41ce-9c5d-7f9cbda4d9f6",
+        "name": "Result"
+      },
+      {
+        "parameters": {
+          "jsCode": "   return [{ json: { booked: false, reason: 'invalid_input', field: $json.detail } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          704,
+          96
+        ],
+        "id": "191fff82-f7d5-45ea-a691-7a7b93a49d26",
+        "name": "InvalidReply"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          976,
+          -16
+        ],
+        "id": "724c1521-3f3a-409e-b3ff-a9cb7ede9e36",
+        "name": "Respond to Webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Validate",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Update row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "InvalidReply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Update row(s)": {
+        "main": [
+          [
+            {
+              "node": "Result",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Result": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "InvalidReply": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": null,
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "d1eadfd1-931c-49ae-86ad-334528a6b2ef",
+    "activeVersionId": "d1eadfd1-931c-49ae-86ad-334528a6b2ef",
+    "versionCounter": 52,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-11-05T10:07:21.913Z",
+        "createdAt": "2026-11-05T10:07:21.913Z",
+        "role": "workflow:owner",
+        "workflowId": "WP1rWW3ucHw2UFO6",
+        "projectId": "5HgnPv71iTDhNaCX",
+        "project": {
+          "updatedAt": "2026-11-05T09:25:57.234Z",
+          "createdAt": "2026-11-05T09:09:27.026Z",
+          "id": "5HgnPv71iTDhNaCX",
+          "name": "Personal",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "be2e4e98-160d-4aae-910f-c40b02d4d96b"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version d1eadfd1",
+      "description": ""
+    }
+  }
+]

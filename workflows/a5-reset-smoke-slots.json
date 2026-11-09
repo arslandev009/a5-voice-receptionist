@@ -1,0 +1,166 @@
+[
+  {
+    "updatedAt": "2026-11-05T10:40:00.518Z",
+    "createdAt": "2026-11-05T10:37:16.201Z",
+    "id": "xmMD0bIN3akq1gos",
+    "name": "a5-reset-smoke-slots",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {},
+        "type": "n8n-nodes-base.manualTrigger",
+        "typeVersion": 1,
+        "position": [
+          -160,
+          -80
+        ],
+        "id": "b244405b-812d-4379-8bb7-11df56182395",
+        "name": "When clicking ‘Execute workflow’"
+      },
+      {
+        "parameters": {
+          "operation": "update",
+          "dataTableId": {
+            "__rl": true,
+            "value": "m4Wi5zlH563oClRA",
+            "mode": "list",
+            "cachedResultName": "slots",
+            "cachedResultUrl": "/projects/5HgnPv71iTDhNaCX/datatables/m4Wi5zlH563oClRA"
+          },
+          "matchType": "allConditions",
+          "filters": {
+            "conditions": [
+              {
+                "keyName": "patient_name",
+                "keyValue": "Smoke Test"
+              }
+            ]
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "status": "available"
+            },
+            "matchingColumns": [],
+            "schema": [
+              {
+                "id": "date",
+                "displayName": "date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "time",
+                "displayName": "time",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": true
+              },
+              {
+                "id": "status",
+                "displayName": "status",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "patient_name",
+                "displayName": "patient_name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              },
+              {
+                "id": "phone",
+                "displayName": "phone",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "readOnly": false,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.dataTable",
+        "typeVersion": 1.1,
+        "position": [
+          64,
+          -80
+        ],
+        "id": "8ca67c4d-b973-4b1b-8e8d-8bc748f346b9",
+        "name": "Update row(s)"
+      }
+    ],
+    "connections": {
+      "When clicking ‘Execute workflow’": {
+        "main": [
+          [
+            {
+              "node": "Update row(s)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": null,
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "6b80162f-6c3d-48d6-b653-9560d630d62f",
+    "activeVersionId": null,
+    "versionCounter": 11,
+    "triggerCount": 0,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-11-05T10:37:16.204Z",
+        "createdAt": "2026-11-05T10:37:16.204Z",
+        "role": "workflow:owner",
+        "workflowId": "xmMD0bIN3akq1gos",
+        "projectId": "5HgnPv71iTDhNaCX",
+        "project": {
+          "updatedAt": "2026-11-05T09:25:57.234Z",
+          "createdAt": "2026-11-05T09:09:27.026Z",
+          "id": "5HgnPv71iTDhNaCX",
+          "name": "Personal",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "be2e4e98-160d-4aae-910f-c40b02d4d96b"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": null,
+      "description": null
+    }
+  }
+]

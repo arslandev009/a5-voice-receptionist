@@ -1,0 +1,181 @@
+[
+  {
+    "updatedAt": "2026-11-06T12:27:24.312Z",
+    "createdAt": "2026-11-06T12:10:45.720Z",
+    "id": "ggRdK0xyVlJaTHzX",
+    "name": "a5-vapi-tools",
+    "description": null,
+    "active": true,
+    "isArchived": false,
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "vapi-tools",
+          "authentication": "headerAuth",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.2,
+        "position": [
+          -352,
+          -416
+        ],
+        "id": "6eed0e7e-a1e8-422a-bc98-2ab89c93e7e1",
+        "name": "Webhook",
+        "webhookId": "39e097ea-3ffc-4cc0-9334-a676f5e5facb",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "OF6vNtyGWvf8ksUc",
+            "name": "Header Auth account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "   const msg = ($('Webhook').first().json.body || {}).message || {};\n   const calls = Array.isArray(msg.toolCallList) ? msg.toolCallList : [];\n   const routes = { check_availability: 'check-availability', book_appointment: 'book-appointment' };\n   if (msg.type !== 'tool-calls' || calls.length === 0) return [{ json: { skip: true } }];\n   return calls.map(c => {\n     const name = c.name || (c.function && c.function.name);\n     let args = c.arguments || (c.function && c.function.arguments) || {};\n     if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = {}; } }\n     return { json: { toolCallId: c.id, name, args, route: routes[name] || null } };\n   });"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -240,
+          -96
+        ],
+        "id": "43ad736b-c8b1-4bc3-b94a-63966511014b",
+        "name": "Parse"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "=http://localhost:5678/webhook/{{ $json.route }}",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={{ $json.args }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.5,
+        "position": [
+          -64,
+          -416
+        ],
+        "id": "b6773afa-be16-4edf-9102-f20463a8a6ed",
+        "name": "HTTP Request",
+        "onError": "continueRegularOutput"
+      },
+      {
+        "parameters": {
+          "jsCode": "const calls = $('Parse').all().map(i => i.json);\nif (calls.length === 1 && calls[0].skip) return [{ json: { results: [] } }];\nconst replies = $input.all().map(i => i.json);\nconst results = calls.map((c, idx) => {\n  const r = replies[idx] || {};\n  let result;\n  if (!c.route) result = JSON.stringify({ error: 'unknown_tool', tool: c.name });\n  else if (r.error) result = JSON.stringify({ error: 'backend_error' });\n  else result = JSON.stringify(r);\n  return { toolCallId: c.toolCallId, result };\n});\nreturn [{ json: { results } }];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          80,
+          -80
+        ],
+        "id": "ebedd270-6c8c-426d-a0cb-c75afa83a258",
+        "name": "Wrap"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          304,
+          -80
+        ],
+        "id": "119978ff-d800-459a-92b4-27ef3d525625",
+        "name": "Respond to Webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Parse",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "Wrap",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Wrap": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "settings": {
+      "executionOrder": "v1",
+      "binaryMode": "separate"
+    },
+    "staticData": null,
+    "meta": {
+      "templateCredsSetupCompleted": true
+    },
+    "nodeGroups": [],
+    "pinData": {},
+    "versionId": "381f664f-3b91-467e-bab8-556ea155bb18",
+    "activeVersionId": "381f664f-3b91-467e-bab8-556ea155bb18",
+    "versionCounter": 28,
+    "triggerCount": 1,
+    "sourceWorkflowId": null,
+    "tags": [],
+    "shared": [
+      {
+        "updatedAt": "2026-11-06T12:10:45.724Z",
+        "createdAt": "2026-11-06T12:10:45.724Z",
+        "role": "workflow:owner",
+        "workflowId": "ggRdK0xyVlJaTHzX",
+        "projectId": "5HgnPv71iTDhNaCX",
+        "project": {
+          "updatedAt": "2026-11-05T09:25:57.234Z",
+          "createdAt": "2026-11-05T09:09:27.026Z",
+          "id": "5HgnPv71iTDhNaCX",
+          "name": "Personal",
+          "type": "personal",
+          "icon": null,
+          "description": null,
+          "customTelemetryTags": [],
+          "creatorId": "be2e4e98-160d-4aae-910f-c40b02d4d96b"
+        }
+      }
+    ],
+    "versionMetadata": {
+      "name": "Version 381f664f",
+      "description": ""
+    }
+  }
+]

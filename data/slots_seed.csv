@@ -1,0 +1,10 @@
+date,time,status,patient_name,phone
+2026-11-10,17:00,available,,
+2026-11-10,17:30,booked,Test Patient A,0300-0000001
+2026-11-10,18:00,available,,
+2026-11-11,17:00,booked,Test Patient B,0300-0000002
+2026-11-11,17:30,booked,Test Patient C,0300-0000003
+2026-11-11,18:00,booked,Test Patient D,0300-0000004
+2026-11-12,17:00,booked,Test Patient E,0300-0000005
+2026-11-12,17:30,available,,
+2026-11-12,18:00,available,,
