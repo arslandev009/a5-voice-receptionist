@@ -1,6 +1,6 @@
 [
   {
-    "updatedAt": "2026-11-05T10:27:38.346Z",
+    "updatedAt": "2026-11-12T10:30:45.592Z",
     "createdAt": "2026-11-05T10:07:21.910Z",
     "id": "WP1rWW3ucHw2UFO6",
     "name": "a5-book-appointment",
@@ -195,7 +195,7 @@
         "typeVersion": 2,
         "position": [
           704,
-          96
+          144
         ],
         "id": "191fff82-f7d5-45ea-a691-7a7b93a49d26",
         "name": "InvalidReply"
@@ -207,11 +207,76 @@
         "type": "n8n-nodes-base.respondToWebhook",
         "typeVersion": 1.5,
         "position": [
-          976,
-          -16
+          1680,
+          -80
         ],
         "id": "724c1521-3f3a-409e-b3ff-a9cb7ede9e36",
         "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 4
+            },
+            "conditions": [
+              {
+                "id": "b88186da-9986-4e05-8647-f24eb1a73ea9",
+                "leftValue": "={{ $json.booked }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.4,
+        "position": [
+          896,
+          -336
+        ],
+        "id": "3eaad9d3-6bb4-4d28-92b0-c8c738519315",
+        "name": "If1"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://ntfy.sh/YOUR_NTFY_TOPIC",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Title",
+                "value": "Booking confirmed (demo)"
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "raw",
+          "rawContentType": "text/plain",
+          "body": "=  Green Valley Clinic (demo)\n  Date: {{ $('Validate').first().json.date }}\n  Time: {{ $('Validate').first().json.time }}\n  Name: {{ $('Validate').first().json.patient_name }}\n  Phone: ***{{ $('Validate').first().json.phone.slice(-4) }}",
+          "options": {
+            "timeout": 5000
+          }
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.5,
+        "position": [
+          1248,
+          -320
+        ],
+        "id": "95669d0f-8238-49e0-a690-42f931a70214",
+        "name": "HTTP Request",
+        "onError": "continueRegularOutput"
       }
     ],
     "connections": {
@@ -270,6 +335,11 @@
         "main": [
           [
             {
+              "node": "If1",
+              "type": "main",
+              "index": 0
+            },
+            {
               "node": "Respond to Webhook",
               "type": "main",
               "index": 0
@@ -287,6 +357,22 @@
             }
           ]
         ]
+      },
+      "If1": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          []
+        ]
       }
     },
     "settings": {
@@ -297,9 +383,9 @@
     "meta": null,
     "nodeGroups": [],
     "pinData": {},
-    "versionId": "d1eadfd1-931c-49ae-86ad-334528a6b2ef",
-    "activeVersionId": "d1eadfd1-931c-49ae-86ad-334528a6b2ef",
-    "versionCounter": 52,
+    "versionId": "31c605d6-11c8-4393-b6b7-0fdc870f864b",
+    "activeVersionId": "31c605d6-11c8-4393-b6b7-0fdc870f864b",
+    "versionCounter": 74,
     "triggerCount": 1,
     "sourceWorkflowId": null,
     "tags": [],
@@ -324,7 +410,7 @@
       }
     ],
     "versionMetadata": {
-      "name": "Version d1eadfd1",
+      "name": "Version 31c605d6",
       "description": ""
     }
   }

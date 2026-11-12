@@ -44,7 +44,7 @@ local n8n and from the smoke scripts on localhost, never through the tunnel.
   (date `YYYY-MM-DD`, time `HH:MM`, name 1 to 60 characters, phone 7 to 20 characters of digits, plus, minus, space)
   -> If -> Update row(s) on `slots` (match `date`, `time`, `status = available`; set `status = booked`,
   `patient_name`, `phone`; Always Output Data on) -> Code `Result`; the false branch goes to Code `InvalidReply`;
-  both end in one Respond to Webhook.
+  both end in one Respond to Webhook. After a successful booking, a second branch (If booked is true, then HTTP Request) posts a confirmation to a public ntfy.sh topic (date, time, name, phone masked to its last 4 digits); if ntfy fails the booking reply is still sent (On Error: continue).
 - `a5-vapi-tools`: Webhook (POST, path `vapi-tools`, Authentication: Header Auth) -> Code `Parse`
   -> HTTP Request (POST to `http://localhost:5678/webhook/<route>`, On Error: continue) -> Code `Wrap`
   -> Respond to Webhook. Unknown tool names give `{"error":"unknown_tool"}`; a message that is not a
@@ -122,12 +122,24 @@ python scripts\a5_smoke_vapi_adapter.py
 
 8. Talk to the assistant from the dashboard. Give the name `Smoke Test` exactly, so the reset workflow can find the row.
 
+## Confirmation message (ntfy)
+
+After a successful booking `a5-book-appointment` posts a short message to a public ntfy.sh topic: date, time, patient name and the phone number masked to its last 4 digits. This is a demo stand-in for a real SMS (not built). The topic name works like a password, so it lives in `.env` as `A5_NTFY_TOPIC`, and the exported workflow contains the placeholder `YOUR_NTFY_TOPIC` that you replace in the HTTP Request node after an import.
+
+```powershell
+if (-not (Select-String -Path .env -Pattern '^A5_NTFY_TOPIC=' -Quiet)) {
+  $t = "a5-clinic-" + (python -c "import secrets; print(secrets.token_hex(8))")
+  Add-Content -Path .env -Value "A5_NTFY_TOPIC=$t" -Encoding ascii
+}
+```
+
+Open `https://ntfy.sh/<your topic>` in a browser to see the messages. The HTTP Request node uses a 5000 ms timeout and On Error: continue, so a failing ntfy never blocks the booking reply.
 ## Tests and what they change
 
 | Command | Checks | Changes data |
 |---|---|---|
 | `a5_smoke_webhook.py --prod --date D --expect "t1,t2"` (or `--expect none`) | Slots returned for date D | No |
-| `a5_smoke_booking.py` | Validation, booking, double booking, parallel race | Yes: books 2026-11-10 17:00 and 2026-11-12 17:30 as `Smoke Test` |
+| `a5_smoke_booking.py` | Validation, booking, double booking, parallel race | Yes: books 2026-11-10 17:00 and 2026-11-12 17:30 as `Smoke Test` and sends two ntfy confirmations |
 | `a5_smoke_vapi_adapter.py` | Secret required, tool-call formats, unknown tool, several calls | No |
 
 `a5_smoke_booking.py` and `a5_smoke_webhook.py` call the raw webhooks, so run them against localhost only.
@@ -156,6 +168,8 @@ Checked:
 - One real VAPI web call (dashboard Talk, 2026-11-07): both tools got HTTP 200 and the header was accepted;
   the booking for 2026-11-10 17:00 succeeded.
 
+- Booking confirmation: the booking smoke test sent exactly two ntfy messages, one per successful booking and none for rejected, refused or losing requests.
+
 Not tested:
 
 - Importing `workflows/*.json` into a fresh n8n. The exports mention the data table and the credential by
@@ -163,4 +177,5 @@ Not tested:
   re-attach the credential. The owner label in the exports was replaced by `Personal` by hand.
 - More than one real call, other languages, noisy audio, a real phone number.
 - Running on anything other than Windows with Docker Desktop.
+- SMS or any message to the caller's own phone: confirmations go to a public ntfy topic only, and the ntfy message has not been checked during a real VAPI call.
 - Secret rotation after the first call (the new VAPI token has not been used in a call).
