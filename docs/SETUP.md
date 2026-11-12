@@ -157,7 +157,7 @@ After a booking test or a call, run `a5-reset-smoke-slots` in n8n, then re-run t
 - 502 from ngrok: the n8n container was not running.
 - 403 on `/webhook/vapi-tools`: wrong or missing `x-a5-secret`. The VAPI dashboard "Test Tool" runs in the
   browser and does not send the credential header, so it always gets 403; use a real call.
-- A booking saved as `Smoke test` (lowercase t) is not found by the reset workflow.
+- A booking saved under a name other than exactly `Smoke Test` (a lowercase t, or speech-to-text hearing `Smoke S`) is not found by the reset workflow; set that row back to `available` by hand in the data table.
 - The VAPI call log file contains the `x-a5-secret` value in plain text. Do not share or commit it.
 
 ## Verification status
@@ -168,7 +168,7 @@ Checked:
 - One real VAPI web call (dashboard Talk, 2026-11-07): both tools got HTTP 200 and the header was accepted;
   the booking for 2026-11-10 17:00 succeeded.
 
-- Booking confirmation: the booking smoke test sent exactly two ntfy messages, one per successful booking and none for rejected, refused or losing requests.
+- Booking confirmation: the booking smoke test sent exactly two ntfy messages, one per successful booking and none for rejected, refused or losing requests. It also arrived once during a real VAPI call (the rejected attempt in that call produced no message). Four real test calls are logged in `docs/TEST_CALLS.md`.
 
 Not tested:
 
@@ -177,5 +177,5 @@ Not tested:
   re-attach the credential. The owner label in the exports was replaced by `Personal` by hand.
 - More than one real call, other languages, noisy audio, a real phone number.
 - Running on anything other than Windows with Docker Desktop.
-- SMS or any message to the caller's own phone: confirmations go to a public ntfy topic only, and the ntfy message has not been checked during a real VAPI call.
+- SMS or any message to the caller's own phone: confirmations go to a public ntfy topic only.
 - Secret rotation after the first call (the new VAPI token has not been used in a call).
